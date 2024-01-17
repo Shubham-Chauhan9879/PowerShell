@@ -1,0 +1,1 @@
+in case you have a on prem environment where you have domain server and you want to get the hardware hash of the devices to enroll them through autopilot in a new tenant which is different from your current infrastructure, you can use this script which copies the hardware hash of the requested file to a shared location so that it can be uploaded to the intune portal.
