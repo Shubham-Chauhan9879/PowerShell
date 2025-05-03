@@ -1,1 +1,1 @@
-This is a GUI tool created using PowerShell Forms functionality which lets user to change Hostname in a windows subsystem. Although It's not advisable to use it as we do have better options to achieve the samething using a backend script using Intune/PowerShell.
+This is a GUI tool created using PowerShell Forms functionality which lets user to change Hostname in a windows subsystem. Although It's not advisable to use it as we do have better options to achieve the samething using a backend script using Intune/SCCM.
