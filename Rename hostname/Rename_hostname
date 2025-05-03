@@ -1,0 +1,92 @@
+# Load required assemblies for Windows Forms
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+# Create the main form
+$form = New-Object System.Windows.Forms.Form
+$form.Text = 'Hostname Manager'
+$form.Size = New-Object System.Drawing.Size(400, 250)
+$form.StartPosition = 'CenterScreen'
+$form.FormBorderStyle = 'FixedDialog'
+$form.MaximizeBox = $false
+
+# Create label for instructions
+$labelInstructions = New-Object System.Windows.Forms.Label
+$labelInstructions.Location = New-Object System.Drawing.Point(20, 20)
+$labelInstructions.Size = New-Object System.Drawing.Size(350, 20)
+$labelInstructions.Text = 'Enter new hostname below:'
+$form.Controls.Add($labelInstructions)
+
+# Create textbox for new hostname input
+$textBoxNewHostname = New-Object System.Windows.Forms.TextBox
+$textBoxNewHostname.Location = New-Object System.Drawing.Point(20, 50)
+$textBoxNewHostname.Size = New-Object System.Drawing.Size(350, 20)
+$form.Controls.Add($textBoxNewHostname)
+
+# Create label for current hostname display
+$labelCurrentHostname = New-Object System.Windows.Forms.Label
+$labelCurrentHostname.Location = New-Object System.Drawing.Point(20, 90)
+$labelCurrentHostname.Size = New-Object System.Drawing.Size(350, 20)
+$labelCurrentHostname.Text = 'Current Hostname: '
+$form.Controls.Add($labelCurrentHostname)
+
+# Create button to show current hostname
+$buttonShowHostname = New-Object System.Windows.Forms.Button
+$buttonShowHostname.Location = New-Object System.Drawing.Point(20, 130)
+$buttonShowHostname.Size = New-Object System.Drawing.Size(150, 30)
+$buttonShowHostname.Text = 'Show Current Hostname'
+$buttonShowHostname.Add_Click({
+    $currentHostname = [System.Net.Dns]::GetHostName()
+    $labelCurrentHostname.Text = "Current Hostname: $currentHostname"
+})
+$form.Controls.Add($buttonShowHostname)
+
+# Create OK button to set new hostname
+$buttonOK = New-Object System.Windows.Forms.Button
+$buttonOK.Location = New-Object System.Drawing.Point(220, 130)
+$buttonOK.Size = New-Object System.Drawing.Size(150, 30)
+$buttonOK.Text = 'Set New Hostname'
+$buttonOK.Add_Click({
+    $newHostname = $textBoxNewHostname.Text.Trim()
+    
+    if ([string]::IsNullOrEmpty($newHostname)) {
+        [System.Windows.Forms.MessageBox]::Show("Please enter a hostname.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        return
+    }
+    
+    if ($newHostname.Length > 15) {
+        [System.Windows.Forms.MessageBox]::Show("Hostname cannot be more than 15 characters.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        return
+    }
+    
+    try {
+        # This requires admin privileges
+        Rename-Computer -NewName $newHostname -Force
+        [System.Windows.Forms.MessageBox]::Show("Hostname has been changed to '$newHostname'. A restart is required for changes to take effect.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        
+        # Update the current hostname display
+        $labelCurrentHostname.Text = "Current Hostname: $newHostname (restart required)"
+    }
+    catch {
+        [System.Windows.Forms.MessageBox]::Show("Failed to change hostname: $_", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+})
+$form.Controls.Add($buttonOK)
+
+# Create status label
+$labelStatus = New-Object System.Windows.Forms.Label
+$labelStatus.Location = New-Object System.Drawing.Point(20, 180)
+$labelStatus.Size = New-Object System.Drawing.Size(350, 20)
+$labelStatus.Text = 'Ready'
+$form.Controls.Add($labelStatus)
+
+# Set initial focus to the textbox
+$form.Add_Shown({
+    $textBoxNewHostname.Select()
+    # Show current hostname on load
+    $currentHostname = [System.Net.Dns]::GetHostName()
+    $labelCurrentHostname.Text = "Current Hostname: $currentHostname"
+})
+
+# Show the form
+[void]$form.ShowDialog()
